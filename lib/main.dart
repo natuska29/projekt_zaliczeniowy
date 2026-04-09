@@ -5,8 +5,24 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: HomeScreen(),
+    );
+  }
+}
 
-  final List<Task> tasks = [
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+
+  List<Task> tasks = [
     Task(title: "nauka do kolosa", deadline: "dzisiaj", done: false, priority: "wysoki"),
     Task(title: "kupic bilety na pociąg", deadline: "do końca tygodnia", done: true, priority: "średni"),
     Task(title: "zrobic zakupy", deadline: "jutro", done: false, priority: "niski"),
@@ -15,59 +31,83 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     int doneCount = tasks.where((t) => t.done).length;
 
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text("KrakFlow"),
-        ),
-        body: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("KrakFlow"),
+      ),
 
-              Text("Masz dziś ${tasks.length} zadania (zrobione: $doneCount)"),
-              SizedBox(height: 16),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
 
-              // ✅ Nagłówek
-              Text(
-                "Dzisiejsze zadania",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
+            Text("Masz dziś ${tasks.length} zadania (zrobione: $doneCount)"),
+            SizedBox(height: 16),
+
+            Text(
+              "Dzisiejsze zadania",
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
               ),
+            ),
 
-              SizedBox(height: 16),
+            SizedBox(height: 16),
 
-              Expanded(
-                child: ListView.builder(
-                  itemCount: tasks.length,
-                  itemBuilder: (context, index) {
-                    final task = tasks[index];
+            Expanded(
+              child: ListView.builder(
+                itemCount: tasks.length,
+                itemBuilder: (context, index) {
 
-                    return TaskCard(
-                      title: task.title,
-                      subtitle: "termin: ${task.deadline} | priorytet: ${task.priority}",
-                      icon: task.done
-                          ? Icons.check_circle
-                          : Icons.radio_button_unchecked,
-                    );
-                  },
-                ),
+                  final task = tasks[index];
+
+                  return TaskCard(
+                    title: task.title,
+                    subtitle:
+                    "termin: ${task.deadline} | priorytet: ${task.priority}",
+                    icon: task.done
+                        ? Icons.check_circle
+                        : Icons.radio_button_unchecked,
+                  );
+                },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
+
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+
+          final Task? newTask = await Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => AddTaskScreen(),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: child,
+                );
+              },
+            ),
+          );
+
+          if (newTask != null) {
+            setState(() {
+              tasks.add(newTask);
+            });
+          }
+        },
+
+        child: Icon(Icons.add),
       ),
     );
   }
 }
-
-//////////////////////////////////////////////////
-// MODEL (zadanie 1 + 6)
 
 class Task {
   final String title;
@@ -97,15 +137,94 @@ class TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Card(
       margin: EdgeInsets.only(bottom: 12),
+
       child: ListTile(
         leading: Icon(icon, color: Colors.blue),
+
         title: Text(
           title,
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
+
         subtitle: Text(subtitle),
+      ),
+    );
+  }
+}
+
+class AddTaskScreen extends StatelessWidget {
+
+  AddTaskScreen({super.key});
+
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController deadlineController = TextEditingController();
+  final TextEditingController priorityController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Nowe zadanie"),
+      ),
+
+      body: Padding(
+        padding: EdgeInsets.all(16),
+
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            TextField(
+              controller: titleController,
+              decoration: InputDecoration(
+                labelText: "Tytuł zadania",
+                border: OutlineInputBorder(),
+              ),
+            ),
+
+            SizedBox(height: 16),
+
+            TextField(
+              controller: deadlineController,
+              decoration: InputDecoration(
+                labelText: "Termin",
+                border: OutlineInputBorder(),
+              ),
+            ),
+
+            SizedBox(height: 16),
+
+            TextField(
+              controller: priorityController,
+              decoration: InputDecoration(
+                labelText: "Priorytet",
+                border: OutlineInputBorder(),
+              ),
+            ),
+
+            SizedBox(height: 20),
+
+            ElevatedButton(
+              onPressed: () {
+
+                final newTask = Task(
+                  title: titleController.text,
+                  deadline: deadlineController.text,
+                  done: false,
+                  priority: priorityController.text,
+                );
+
+                Navigator.pop(context, newTask);
+              },
+
+              child: Text("Zapisz"),
+            ),
+          ],
+        ),
       ),
     );
   }
