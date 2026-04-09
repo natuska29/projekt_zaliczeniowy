@@ -96,6 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
 
+
           if (newTask != null) {
             setState(() {
               tasks.add(newTask);
