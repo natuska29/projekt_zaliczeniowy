@@ -433,7 +433,7 @@ class AddTaskScreen extends StatelessWidget {
               controller: titleController,
 
               decoration: InputDecoration(
-                labelText: "Tytuł zadania",
+                labelText: "tytuł zadania",
                 border: OutlineInputBorder(),
               ),
             ),
